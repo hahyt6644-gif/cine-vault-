@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 // Your MongoDB connection string
-const uri = "mongodb+srv://admin:Rz1S3MgR8pePoudU@cluster0.z7lpock.mongodb.net/?appName=Cluster0";
+const uri = "mongodb+srv://amitprojects545_db_user:XtPmY6eQTFcpHcaz@cluster0.0k08xds.mongodb.net/?appName=Cluster0";
 
 // Global connection caching for Vercel Serverless optimization
 let client;
