@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineHub - Enhanced</title>
+  <title>CineHub - Premium Enhanced</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,14 +20,15 @@
             gold: "#f5c542"
           },
           boxShadow: {
-            glowRed: "0 0 35px rgba(229,9,20,.30)",
+            glowRed: "0 0 35px rgba(229,9,20,.40)",
             glowBlue: "0 0 35px rgba(0,136,204,.25)",
             soft: "0 10px 40px rgba(0,0,0,.35)"
           },
           animation: {
             "pulse-slow": "pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite",
             "float-soft": "floatSoft 6s ease-in-out infinite",
-            "slide-up": "slideUp .35s ease-out"
+            "slide-up": "slideUp .35s ease-out",
+            "shimmer": "shimmer 2s infinite linear"
           },
           keyframes: {
             floatSoft: {
@@ -38,6 +38,10 @@
             slideUp: {
               "0%": { transform: "translateY(20px)", opacity: 0 },
               "100%": { transform: "translateY(0px)", opacity: 1 }
+            },
+            shimmer: {
+              "0%": { transform: "translateX(-150%) skewX(-20deg)" },
+              "100%": { transform: "translateX(250%) skewX(-20deg)" }
             }
           }
         }
@@ -45,10 +49,8 @@
     }
   </script>
 
-  <!-- Alpine -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <!-- Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
@@ -146,7 +148,6 @@
   x-data="cineHub()"
   x-init="fetchData()"
 >
-  <!-- Ambient background blobs -->
   <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
     <div class="absolute -top-[15%] -left-[10%] w-[60vw] h-[60vw] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow"></div>
     <div class="absolute top-[40%] -right-[10%] w-[55vw] h-[55vw] bg-accent/10 blur-[120px] rounded-full animate-pulse-slow"></div>
@@ -155,35 +156,43 @@
 
   <main class="relative z-10 max-w-xl mx-auto px-4 sm:px-5 pt-5 pb-24" x-cloak>
 
-    <!-- NEW HERO SECTION -->
     <section class="mb-8">
-      <!-- Media Grid -->
       <div class="grid grid-cols-2 gap-3 mb-6">
-        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft">
-          <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop" alt="Scene 1" class="w-full h-full object-cover hover:scale-105 transition duration-500" />
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft relative group">
+          <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop" alt="Latest 1" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition duration-500"></div>
         </div>
-        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft">
-          <img src="https://images.unsplash.com/photo-1574267432553-4b462808152a?q=80&w=800&auto=format&fit=crop" alt="Scene 2" class="w-full h-full object-cover hover:scale-105 transition duration-500" />
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft relative group">
+          <img src="https://images.unsplash.com/photo-1574267432553-4b462808152a?q=80&w=800&auto=format&fit=crop" alt="Latest 2" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition duration-500"></div>
+        </div>
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft relative group">
+          <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=800&auto=format&fit=crop" alt="Latest 3" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition duration-500"></div>
+        </div>
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft relative group">
+          <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop" alt="Latest 4" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition duration-500"></div>
         </div>
       </div>
 
-      <!-- Main "Watch now" Call to Action (Redirects to Telegram) -->
-      <div class="flex justify-center w-full">
+      <div class="flex justify-center w-full mt-2">
         <button
           @click="smartRedirect()"
-          class="flex items-center justify-between bg-black text-white rounded-[1.5rem] p-3 pl-8 hover:scale-105 transition-transform duration-300 shadow-2xl border border-white/10 w-full sm:w-[85%]"
+          class="relative group w-full sm:w-[90%] flex items-center justify-between bg-gradient-to-r from-primary via-red-500 to-[#ff9500] text-white rounded-[1.8rem] p-3 pl-8 transition-all duration-500 hover:scale-[1.03] hover:shadow-glowRed border border-white/20 overflow-hidden"
         >
-          <span class="text-3xl font-black tracking-wide">Watch now</span>
-          <div class="bg-[#ff9500] rounded-xl w-14 h-14 flex items-center justify-center shadow-lg">
-            <i class="ph-fill ph-play text-white text-3xl ml-1"></i>
+          <div class="absolute inset-0 w-[50%] bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shimmer z-0"></div>
+
+          <span class="text-3xl font-black tracking-wide z-10 drop-shadow-md">Watch now</span>
+
+          <div class="relative z-10 bg-white text-primary rounded-xl w-14 h-14 flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:rotate-[15deg] group-hover:scale-110">
+            <i class="ph-fill ph-play text-3xl ml-1 drop-shadow-sm"></i>
           </div>
         </button>
       </div>
     </section>
 
-    <!-- SEARCH + FILTERS -->
     <section id="moviesSection" class="mb-5">
-      <!-- Search -->
       <div class="glass-strong rounded-[1.6rem] p-3 border border-white/10 mb-3">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
@@ -209,7 +218,6 @@
         </div>
       </div>
 
-      <!-- Filter chips -->
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
         <button
           @click="selectedGenre = 'All'"
@@ -230,7 +238,6 @@
       </div>
     </section>
 
-    <!-- SECTION HEADER -->
     <section class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-xl font-black tracking-tight">Featured Movies</h3>
@@ -250,7 +257,6 @@
       </div>
     </section>
 
-    <!-- LOADING -->
     <div x-show="isLoading" class="py-12">
       <div class="grid grid-cols-2 gap-4">
         <template x-for="i in 6" :key="i">
@@ -263,7 +269,6 @@
       </div>
     </div>
 
-    <!-- MOVIES GRID -->
     <section x-show="!isLoading">
       <div class="grid grid-cols-2 gap-4 sm:gap-5">
         <template x-for="movie in filteredMovies" :key="movie.id">
@@ -271,7 +276,6 @@
             @click="openMovie(movie)"
             class="group relative movie-card rounded-[1.8rem] overflow-hidden cursor-pointer aspect-[2/3] bg-card border border-white/10 shadow-soft hover:border-white/20 transition-all duration-500 animate-slide-up"
           >
-            <!-- Poster -->
             <div class="poster-shine absolute inset-0">
               <img
                 :src="movie.poster || fallbackPoster"
@@ -280,7 +284,6 @@
               />
             </div>
 
-            <!-- Top badges -->
             <div class="absolute top-3 left-3 z-10 flex flex-wrap gap-2 max-w-[80%]">
               <template x-if="movie.badge">
                 <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/95 text-white shadow-lg" x-text="movie.badge"></span>
@@ -291,14 +294,12 @@
               </template>
             </div>
 
-            <!-- Hover play -->
             <div class="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
               <div class="w-16 h-16 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center shadow-glowRed">
                 <i class="ph-fill ph-play text-white text-2xl ml-1"></i>
               </div>
             </div>
 
-            <!-- Bottom info -->
             <div class="absolute bottom-0 left-0 right-0 z-10 p-4">
               <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-2 flex-wrap">
                 <template x-if="movie.genre">
@@ -328,7 +329,6 @@
         </template>
       </div>
 
-      <!-- Empty state -->
       <div
         x-show="!filteredMovies.length && !isLoading"
         class="mt-8 glass-strong rounded-[2rem] p-8 text-center border border-white/10"
@@ -347,13 +347,11 @@
       </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="pt-10 text-center text-sm text-gray-500">
       <p class="font-semibold" x-text="config.footerText || 'One link. Unlimited entertainment.'"></p>
     </footer>
   </main>
 
-  <!-- MOVIE MODAL -->
   <div
     x-cloak
     x-show="selectedMovie"
@@ -370,7 +368,6 @@
       x-transition:leave-start="opacity-100 translate-y-0 scale-100"
       x-transition:leave-end="opacity-0 translate-y-6 scale-95"
     >
-      <!-- Poster -->
       <div class="relative h-72">
         <img
           :src="selectedMovie?.poster || fallbackPoster"
@@ -387,9 +384,7 @@
         </button>
       </div>
 
-      <!-- Content -->
       <div class="p-5 -mt-12 relative">
-        <!-- Meta -->
         <div class="flex flex-wrap gap-2 mb-3">
           <template x-if="selectedMovie?.genre">
             <span class="glass px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.genre"></span>
@@ -412,15 +407,12 @@
           </template>
         </div>
 
-        <!-- Title -->
         <h3 class="text-3xl font-black tracking-tight leading-tight mb-3" x-text="selectedMovie?.title"></h3>
 
-        <!-- Description -->
         <template x-if="selectedMovie?.description">
           <p class="text-sm text-gray-300 leading-relaxed mb-5 line-clamp-3" x-text="selectedMovie.description"></p>
         </template>
 
-        <!-- Buttons -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             @click="smartRedirect(selectedMovie)"
