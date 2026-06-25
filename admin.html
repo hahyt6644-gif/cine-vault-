@@ -21,16 +21,13 @@
   </header>
 
   <main class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-    
     <div class="space-y-8">
       
       <div class="glass-panel p-6 rounded-2xl">
         <h2 class="text-lg font-bold mb-5 flex items-center"><i class="ph-fill ph-link mr-2 text-primary"></i> Global Telegram Link</h2>
         <form @submit.prevent="updateConfig" class="space-y-4">
-          <input type="url" x-model="config.telegramLink" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
-          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">
-            Save Link
-          </button>
+          <input type="url" x-model="config.telegramLink" required placeholder="https://t.me/yourchannel" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Save Link</button>
         </form>
       </div>
 
@@ -39,7 +36,10 @@
         <form @submit.prevent="addMovie" class="space-y-4">
           <input type="text" x-model="newMovie.title" placeholder="Movie Title" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
           <input type="url" x-model="newMovie.poster" placeholder="Poster Image URL" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
-          <input type="url" x-model="newMovie.watchLink" placeholder="Watch/Telegram Link" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          
+          <input type="url" x-model="newMovie.watchLink" placeholder="Custom Link (Optional)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <p class="text-[10px] text-gray-500 -mt-2 ml-1">If empty, visitors will be sent to your Global Telegram Link.</p>
+          
           <div class="grid grid-cols-2 gap-4">
             <input type="text" x-model="newMovie.genre" placeholder="Genre" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
             <input type="text" x-model="newMovie.badge" placeholder="Badge (e.g. HD)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
@@ -67,6 +67,7 @@
                 <h3 class="font-bold text-sm" x-text="movie.title"></h3>
                 <div class="flex space-x-2 mt-1">
                   <span class="text-[10px] text-gray-400 uppercase bg-white/5 px-2 py-0.5 rounded" x-text="movie.genre"></span>
+                  <span x-show="!movie.watchLink" class="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">Uses Global Link</span>
                 </div>
               </div>
             </div>
@@ -85,7 +86,7 @@
         config: { telegramLink: '' },
         movies: [],
         isSubmitting: false,
-        secretKey: 'SUPER_SECRET_BOT_KEY', // Must match the Node.js API
+        secretKey: 'SUPER_SECRET_BOT_KEY',
         newMovie: { title: '', poster: '', watchLink: '', genre: '', badge: '' },
 
         async apiCall(action, payload) {
@@ -94,7 +95,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ secretKey: this.secretKey, action, payload })
           });
-          return await res.json();
+          const data = await res.json();
+          if(data.error) alert(data.error);
+          return data;
         },
 
         async fetchData() {
@@ -128,5 +131,4 @@
     })
   </script>
 </body>
-              </html>
-          
+</html>
