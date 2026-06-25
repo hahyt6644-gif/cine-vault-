@@ -3,126 +3,142 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Movie Hub</title>
+  <title>Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: { colors: { dark: '#030303', darker: '#000000', primary: '#e50914' }, animation: { 'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite' } } }
-    }
-  </script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    [x-cloak] { display: none !important; }
-    .glass-nav { background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .glass-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
-  </style>
+  <script>tailwind.config = { theme: { extend: { colors: { dark: '#030303', primary: '#e50914' } } } }</script>
+  <style>.glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }</style>
 </head>
+<body class="bg-dark text-white font-sans min-h-screen p-4 md:p-8" x-data="adminPanel()" x-init="fetchData()">
 
-<body class="bg-darker text-white font-sans pb-20 overflow-x-hidden min-h-screen selection:bg-primary selection:text-white" x-data="cineHub()" x-init="fetchData()">
+  <header class="max-w-5xl mx-auto flex justify-between items-center glass-panel p-5 rounded-2xl mb-8">
+    <div class="flex items-center">
+      <div class="bg-primary/20 p-2 rounded-lg mr-3"><i class="ph-fill ph-film-strip text-primary text-2xl"></i></div>
+      <h1 class="text-xl font-bold tracking-wide">CineHub Admin</h1>
+    </div>
+    <a href="/" class="text-sm text-gray-400 hover:text-white transition">View Live Site <i class="ph ph-arrow-up-right"></i></a>
+  </header>
 
-  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-    <div class="absolute -top-40 -left-40 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full animate-pulse-slow"></div>
-    <div class="absolute top-1/3 -right-40 w-[400px] h-[400px] bg-blue-600/10 blur-[150px] rounded-full animate-pulse-slow" style="animation-delay: 2s;"></div>
-  </div>
-
-  <div class="relative z-10 max-w-lg mx-auto px-4 pt-12" x-cloak>
-    
-    <header class="text-center mb-12 flex flex-col items-center">
-      <div class="relative group mb-6">
-        <div class="absolute -inset-1 bg-gradient-to-r from-primary to-blue-600 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-        <img src="https://ui-avatars.com/api/?name=Cine+Hub&background=e50914&color=fff&size=128" alt="Logo" class="relative w-28 h-28 rounded-full border border-white/20 object-cover shadow-2xl">
+  <main class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="space-y-8">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <h2 class="text-lg font-bold mb-5 flex items-center"><i class="ph-fill ph-link mr-2 text-primary"></i> Global Telegram Link</h2>
+        <form @submit.prevent="updateConfig" class="space-y-4">
+          <input type="url" x-model="config.telegramLink" required placeholder="https://t.me/yourchannel" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Save Link</button>
+        </form>
       </div>
-      
-      <h1 class="text-5xl font-black mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-200 to-gray-500">CineHub</h1>
-      <p class="text-gray-400 text-sm mb-8 px-4 font-medium">Unlimited Premium Entertainment.</p>
-      
-      <a :href="config.telegramLink" target="_blank" class="w-full flex items-center justify-center bg-white text-black py-4 rounded-2xl font-bold text-lg transition-all hover:scale-[1.03] shadow-[0_0_40px_rgba(255,255,255,0.15)]">
-        <i class="ph-fill ph-telegram-logo text-2xl mr-3 text-blue-500"></i> Join Main Channel
-      </a>
-    </header>
 
-    <div x-show="isLoading" class="flex justify-center py-20">
-      <i class="ph ph-circle-notch animate-spin text-4xl text-primary"></i>
+      <div class="glass-panel p-6 rounded-2xl">
+        <h2 class="text-lg font-bold mb-5 flex items-center"><i class="ph-fill ph-plus-circle mr-2 text-primary"></i> Add Movie</h2>
+        <form @submit.prevent="addMovie" class="space-y-4">
+          <input type="text" x-model="newMovie.title" placeholder="Movie Title" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+          <input type="url" x-model="newMovie.poster" placeholder="Poster Image URL" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+          
+          <input type="url" x-model="newMovie.watchLink" placeholder="Custom Link (Optional)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+          <p class="text-[10px] text-gray-500 -mt-2 ml-1">If empty, visitors will be sent to your Global Telegram Link.</p>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" x-model="newMovie.genre" placeholder="Genre" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+            <input type="text" x-model="newMovie.badge" placeholder="Badge (e.g. HD)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition">
+          </div>
+          <button type="submit" class="w-full bg-primary hover:bg-red-700 text-white font-bold py-3 rounded-xl transition flex justify-center items-center">
+            <span x-show="!isSubmitting">Publish Movie</span>
+            <i x-show="isSubmitting" class="ph ph-spinner-gap animate-spin text-xl"></i>
+          </button>
+        </form>
+      </div>
     </div>
 
-    <div x-show="!isLoading" class="grid grid-cols-2 gap-4 mb-12">
-      <template x-for="movie in movies" :key="movie.id">
-        <div @click="selectedMovie = movie" class="group relative rounded-[1.5rem] overflow-hidden cursor-pointer aspect-[2/3] bg-dark border border-white/5 shadow-xl hover:shadow-[0_0_30px_rgba(229,9,20,0.2)] hover:border-primary/30 transition-all duration-300">
-          
-          <img :src="movie.poster" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-          
-          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-          
-          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
-            <div class="bg-primary/90 backdrop-blur-md p-4 rounded-full shadow-[0_0_30px_rgba(229,9,20,0.5)]">
-              <i class="ph-fill ph-play text-white text-2xl ml-1"></i>
+    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl">
+      <h2 class="text-lg font-bold mb-5 flex items-center justify-between">
+        <span class="flex items-center"><i class="ph-fill ph-database mr-2 text-primary"></i> Live Database</span>
+        <span class="bg-white/10 px-3 py-1 rounded-full text-xs font-bold" x-text="movies.length + ' Movies'"></span>
+      </h2>
+      
+      <div class="space-y-3 max-h-[700px] overflow-y-auto pr-2 hide-scrollbar">
+        <template x-for="movie in movies" :key="movie.id">
+          <div class="flex items-center justify-between bg-black/40 border border-white/5 p-4 rounded-xl hover:border-white/10 transition group">
+            <div class="flex items-center space-x-4">
+              <img :src="movie.poster" class="w-12 h-16 object-cover rounded-lg shadow-lg">
+              <div>
+                <h3 class="font-bold text-sm" x-text="movie.title"></h3>
+                <div class="flex space-x-2 mt-1">
+                  <span class="text-[10px] text-gray-400 uppercase bg-white/5 px-2 py-0.5 rounded font-bold" x-text="movie.genre"></span>
+                  <span x-show="!movie.watchLink" class="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded font-bold">Uses Global Link</span>
+                </div>
+              </div>
             </div>
+            <button @click="deleteMovie(movie.id)" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition opacity-50 group-hover:opacity-100">
+              <i class="ph-fill ph-trash text-lg"></i>
+            </button>
           </div>
-          
-          <template x-if="movie.badge">
-            <span class="absolute top-3 right-3 bg-primary/90 backdrop-blur-sm text-white text-[9px] font-black px-2.5 py-1 rounded shadow-lg uppercase tracking-widest" x-text="movie.badge"></span>
-          </template>
-
-          <div class="absolute bottom-0 left-0 w-full p-5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-            <p class="text-primary text-[10px] font-bold uppercase tracking-widest mb-1" x-text="movie.genre"></p>
-            <h3 class="text-white font-bold text-base truncate drop-shadow-md" x-text="movie.title"></h3>
-          </div>
-        </div>
-      </template>
-    </div>
-  </div>
-
-  <div x-cloak x-show="selectedMovie" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-2xl p-4 sm:p-0 transition-all">
-    <div @click.away="selectedMovie = null" class="w-full max-w-md bg-dark/90 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl"
-         x-show="selectedMovie" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-16 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100">
-      
-      <button @click="selectedMovie = null" class="absolute top-5 right-5 z-20 bg-black/50 backdrop-blur-xl p-2.5 rounded-full text-white hover:bg-white hover:text-black transition-colors border border-white/10">
-        <i class="ph ph-x font-bold"></i>
-      </button>
-
-      <div class="relative h-80">
-        <img :src="selectedMovie?.poster" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-dark/95 via-dark/50 to-transparent"></div>
-      </div>
-
-      <div class="p-8 relative -mt-20">
-        <div class="flex space-x-2 mb-3">
-          <span class="glass-card px-3 py-1.5 rounded-full text-[10px] font-bold text-gray-200 uppercase tracking-widest" x-text="selectedMovie?.genre"></span>
-        </div>
-        
-        <h2 class="text-3xl font-black mb-8 tracking-tight" x-text="selectedMovie?.title"></h2>
-        
-        <div class="space-y-4">
-          <a :href="selectedMovie?.watchLink ? selectedMovie.watchLink : config.telegramLink" target="_blank" class="flex items-center justify-center w-full bg-primary text-white py-4 rounded-2xl font-bold hover:bg-red-700 transition shadow-[0_0_30px_rgba(229,9,20,0.3)]">
-            <i class="ph-fill ph-play-circle text-2xl mr-2"></i> Watch Now
-          </a>
+        </template>
+        <div x-show="movies.length === 0" class="text-center py-10 text-gray-500">
+          <i class="ph ph-empty text-3xl mb-2"></i>
+          <p class="text-sm">No movies in database yet.</p>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
     document.addEventListener('alpine:init', () => {
-      Alpine.data('cineHub', () => ({
-        isLoading: true,
+      Alpine.data('adminPanel', () => ({
         config: { telegramLink: '' },
         movies: [],
-        selectedMovie: null,
+        isSubmitting: false,
+        secretKey: 'SUPER_SECRET_BOT_KEY', // Must match your api/data.js
+        newMovie: { title: '', poster: '', watchLink: '', genre: '', badge: '' },
+
+        async apiCall(action, payload) {
+          try {
+            const res = await fetch('/api/data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ secretKey: this.secretKey, action, payload })
+            });
+            const data = await res.json();
+            if(data.error) alert(data.error);
+            return data;
+          } catch (e) {
+            alert("API connection failed.");
+            return { error: true };
+          }
+        },
 
         async fetchData() {
           try {
-            const response = await fetch('/api/data');
-            const data = await response.json();
+            const res = await fetch('/api/data');
+            const data = await res.json();
             this.config = data.config || { telegramLink: '' };
             this.movies = data.movies || [];
-          } catch (error) {
-            console.error("API Error:", error);
-          } finally {
-            this.isLoading = false;
+          } catch (e) {
+            console.error("Failed to load initial data", e);
           }
+        },
+
+        async updateConfig() {
+          const res = await this.apiCall('updateConfig', { telegramLink: this.config.telegramLink });
+          if(res.success) alert("Global link updated successfully!");
+        },
+
+        async addMovie() {
+          this.isSubmitting = true;
+          const res = await this.apiCall('addMovie', this.newMovie);
+          if (res.success) {
+            this.movies = res.data.movies;
+            this.newMovie = { title: '', poster: '', watchLink: '', genre: '', badge: '' };
+          }
+          this.isSubmitting = false;
+        },
+
+        async deleteMovie(id) {
+          if(!confirm("Delete this movie permanently?")) return;
+          const res = await this.apiCall('deleteMovie', { id });
+          if(res.success) this.movies = res.data.movies;
         }
       }))
     })
