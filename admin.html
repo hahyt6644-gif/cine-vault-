@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { dark: '#030303', primary: '#e50914' } } } }</script>
+  <style>.glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }</style>
+</head>
+<body class="bg-dark text-white font-sans min-h-screen p-4 md:p-8" x-data="adminPanel()" x-init="fetchData()">
+
+  <header class="max-w-5xl mx-auto flex justify-between items-center glass-panel p-5 rounded-2xl mb-8">
+    <div class="flex items-center">
+      <div class="bg-primary/20 p-2 rounded-lg mr-3"><i class="ph-fill ph-film-strip text-primary text-2xl"></i></div>
+      <h1 class="text-xl font-bold tracking-wide">CineHub Admin</h1>
+    </div>
+    <a href="/" class="text-sm text-gray-400 hover:text-white transition">View Live Site <i class="ph ph-arrow-up-right"></i></a>
+  </header>
+
+  <main class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="space-y-8">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <h2 class="text-lg font-bold mb-5 flex items-center"><i class="ph-fill ph-link mr-2 text-primary"></i> Global Telegram Link</h2>
+        <form @submit.prevent="updateConfig" class="space-y-4">
+          <input type="url" x-model="config.telegramLink" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">
+            Save Link
+          </button>
+        </form>
+      </div>
+
+      <div class="glass-panel p-6 rounded-2xl">
+        <h2 class="text-lg font-bold mb-5 flex items-center"><i class="ph-fill ph-plus-circle mr-2 text-primary"></i> Add Movie</h2>
+        <form @submit.prevent="addMovie" class="space-y-4">
+          <input type="text" x-model="newMovie.title" placeholder="Movie Title" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <input type="url" x-model="newMovie.poster" placeholder="Poster Image URL" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <input type="url" x-model="newMovie.watchLink" placeholder="Watch/Telegram Link" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" x-model="newMovie.genre" placeholder="Genre" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+            <input type="text" x-model="newMovie.badge" placeholder="Badge (e.g. HD)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
+          </div>
+          <button type="submit" class="w-full bg-primary hover:bg-red-700 text-white font-bold py-3 rounded-xl transition flex justify-center items-center">
+            <span x-show="!isSubmitting">Publish Movie</span>
+            <i x-show="isSubmitting" class="ph ph-spinner-gap animate-spin text-xl"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl">
+      <h2 class="text-lg font-bold mb-5 flex items-center justify-between">
+        <span class="flex items-center"><i class="ph-fill ph-database mr-2 text-primary"></i> Live Database</span>
+        <span class="bg-white/10 px-3 py-1 rounded-full text-xs" x-text="movies.length + ' Movies'"></span>
+      </h2>
+      
+      <div class="space-y-3 max-h-[700px] overflow-y-auto pr-2 hide-scrollbar">
+        <template x-for="movie in movies" :key="movie.id">
+          <div class="flex items-center justify-between bg-black/40 border border-white/5 p-4 rounded-xl hover:border-white/10 transition group">
+            <div class="flex items-center space-x-4">
+              <img :src="movie.poster" class="w-12 h-16 object-cover rounded-lg shadow-lg">
+              <div>
+                <h3 class="font-bold text-sm" x-text="movie.title"></h3>
+                <div class="flex space-x-2 mt-1">
+                  <span class="text-[10px] text-gray-400 uppercase bg-white/5 px-2 py-0.5 rounded" x-text="movie.genre"></span>
+                </div>
+              </div>
+            </div>
+            <button @click="deleteMovie(movie.id)" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition opacity-50 group-hover:opacity-100">
+              <i class="ph-fill ph-trash text-lg"></i>
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('adminPanel', () => ({
+        config: { telegramLink: '' },
+        movies: [],
+        isSubmitting: false,
+        secretKey: 'SUPER_SECRET_BOT_KEY', // Must match the Node.js API
+        newMovie: { title: '', poster: '', watchLink: '', genre: '', badge: '' },
+
+        async apiCall(action, payload) {
+          const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secretKey: this.secretKey, action, payload })
+          });
+          return await res.json();
+        },
+
+        async fetchData() {
+          const res = await fetch('/api/data');
+          const data = await res.json();
+          this.config = data.config || { telegramLink: '' };
+          this.movies = data.movies || [];
+        },
+
+        async updateConfig() {
+          const res = await this.apiCall('updateConfig', { telegramLink: this.config.telegramLink });
+          if(res.success) alert("Global link updated!");
+        },
+
+        async addMovie() {
+          this.isSubmitting = true;
+          const res = await this.apiCall('addMovie', this.newMovie);
+          if (res.success) {
+            this.movies = res.data.movies;
+            this.newMovie = { title: '', poster: '', watchLink: '', genre: '', badge: '' };
+          }
+          this.isSubmitting = false;
+        },
+
+        async deleteMovie(id) {
+          if(!confirm("Delete this movie?")) return;
+          const res = await this.apiCall('deleteMovie', { id });
+          if(res.success) this.movies = res.data.movies;
+        }
+      }))
+    })
+  </script>
+</body>
+              </html>
+          
