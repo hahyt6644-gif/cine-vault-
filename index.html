@@ -1,201 +1,736 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Movie Hub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineHub</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { 
-        extend: { 
-          colors: { dark: '#050505', darker: '#000000', primary: '#e50914', accent: '#0088cc' }, 
-          animation: { 'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite' } 
-        } 
+      theme: {
+        extend: {
+          colors: {
+            dark: "#08080b",
+            darker: "#040405",
+            card: "#101014",
+            primary: "#e50914",
+            accent: "#0088cc",
+            soft: "#9ca3af",
+            gold: "#f5c542"
+          },
+          boxShadow: {
+            glowRed: "0 0 35px rgba(229,9,20,.30)",
+            glowBlue: "0 0 35px rgba(0,136,204,.25)",
+            soft: "0 10px 40px rgba(0,0,0,.35)"
+          },
+          animation: {
+            "pulse-slow": "pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            "float-soft": "floatSoft 6s ease-in-out infinite",
+            "slide-up": "slideUp .35s ease-out"
+          },
+          keyframes: {
+            floatSoft: {
+              "0%,100%": { transform: "translateY(0px)" },
+              "50%": { transform: "translateY(-8px)" }
+            },
+            slideUp: {
+              "0%": { transform: "translateY(20px)", opacity: 0 },
+              "100%": { transform: "translateY(0px)", opacity: 1 }
+            }
+          }
+        }
       }
     }
   </script>
+
+  <!-- Alpine -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
   <style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     [x-cloak] { display: none !important; }
-    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-    .glass-btn { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(229,9,20,.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(0,136,204,.10), transparent 28%),
+        #040405;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .glass-strong {
+      background: rgba(255,255,255,.07);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .hero-overlay {
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,.70)),
+        linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.10));
+    }
+
+    .movie-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.96), rgba(0,0,0,.28), transparent);
+      pointer-events: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .poster-shine {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .poster-shine::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 70%;
+      height: 100%;
+      transform: skewX(-18deg);
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255,255,255,.12),
+        transparent
+      );
+      transition: left .9s ease;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .group:hover .poster-shine::before {
+      left: 150%;
+    }
+
+    .chip-active {
+      background: linear-gradient(135deg, rgba(229,9,20,.95), rgba(255,76,76,.85));
+      color: white;
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 0 25px rgba(229,9,20,.25);
+    }
   </style>
 </head>
 
-<body class="bg-darker text-white font-sans pb-20 overflow-x-hidden min-h-screen selection:bg-primary selection:text-white" x-data="cineHub()" x-init="fetchData()">
-
-  <!-- IMMERSIVE CINEMATIC LIGHTING -->
+<body
+  class="text-white min-h-screen overflow-x-hidden selection:bg-primary selection:text-white"
+  x-data="cineHub()"
+  x-init="fetchData()"
+>
+  <!-- Ambient background blobs -->
   <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-    <div class="absolute -top-[20%] -left-[10%] w-[60vw] h-[60vw] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow"></div>
-    <div class="absolute top-[40%] -right-[10%] w-[50vw] h-[50vw] bg-accent/10 blur-[120px] rounded-full animate-pulse-slow" style="animation-delay: 2s;"></div>
+    <div class="absolute -top-[15%] -left-[10%] w-[60vw] h-[60vw] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow"></div>
+    <div class="absolute top-[40%] -right-[10%] w-[55vw] h-[55vw] bg-accent/10 blur-[120px] rounded-full animate-pulse-slow"></div>
+    <div class="absolute bottom-[5%] left-[25%] w-[40vw] h-[40vw] bg-white/5 blur-[120px] rounded-full"></div>
   </div>
 
-  <div class="relative z-10 max-w-lg mx-auto px-5 pt-12" x-cloak>
-    
-    <!-- PREMIUM HERO SECTION -->
-    <header class="text-center mb-14 flex flex-col items-center">
-      <div class="relative group mb-6">
-        <div class="absolute -inset-2 bg-gradient-to-r from-primary to-accent rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-700"></div>
-        <img src="https://ui-avatars.com/api/?name=Cine+Hub&background=e50914&color=fff&size=128" alt="Brand Logo" class="relative w-32 h-32 rounded-full border border-white/20 object-cover shadow-2xl">
-      </div>
-      
-      <h1 class="text-5xl font-black mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-100 to-gray-500">CineHub</h1>
-      <p class="text-gray-400 text-sm mb-8 font-medium tracking-wide">Premium Entertainment Hub.</p>
-      
-      <!-- MAIN CHANNEL CTA -->
-      <a :href="config.telegramLink" target="_blank" class="w-full flex items-center justify-center bg-white text-black py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)]">
-        <i class="ph-fill ph-telegram-logo text-3xl mr-3 text-accent"></i> Join Telegram Channel
-      </a>
-    </header>
+  <main class="relative z-10 max-w-xl mx-auto px-4 sm:px-5 pt-5 pb-24" x-cloak>
 
-    <!-- LOADING STATE -->
-    <div x-show="isLoading" class="flex flex-col items-center justify-center py-20 text-primary">
-      <i class="ph ph-circle-notch animate-spin text-5xl mb-4"></i>
-      <p class="text-sm text-gray-500 font-bold uppercase tracking-widest">Loading Database</p>
+    <!-- HERO -->
+    <section class="relative rounded-[2rem] overflow-hidden mb-5 border border-white/10 shadow-soft">
+      <!-- Hero background -->
+      <div class="absolute inset-0">
+        <img
+          :src="config.heroImage || fallbackHero"
+          alt="Hero"
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 hero-overlay"></div>
+      </div>
+
+      <!-- Top right actions -->
+      <div class="absolute top-4 right-4 z-20 flex gap-2">
+        <a
+          x-show="config.instagramLink"
+          :href="config.instagramLink"
+          target="_blank"
+          class="glass px-3 py-2 rounded-xl text-xs font-bold text-white/90 flex items-center gap-2 hover:bg-white/10 transition"
+        >
+          <i class="ph ph-instagram-logo text-lg"></i>
+          IG
+        </a>
+
+        <a
+          x-show="config.telegramLink"
+          :href="config.telegramLink"
+          target="_blank"
+          class="glass px-3 py-2 rounded-xl text-xs font-bold text-white/90 flex items-center gap-2 hover:bg-white/10 transition"
+        >
+          <i class="ph-fill ph-telegram-logo text-lg text-accent"></i>
+          TG
+        </a>
+      </div>
+
+      <div class="relative z-10 p-5 sm:p-6">
+        <!-- Brand -->
+        <div class="flex items-center gap-3 mb-6">
+          <div class="relative shrink-0">
+            <div class="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-full blur-md opacity-70"></div>
+            <img
+              :src="config.logo || fallbackLogo"
+              alt="Brand Logo"
+              class="relative w-16 h-16 rounded-full object-cover border border-white/20"
+            />
+          </div>
+
+          <div class="min-w-0">
+            <h1
+              class="text-2xl sm:text-3xl font-black tracking-tight truncate"
+              x-text="config.brandName || 'CineHub'"
+            ></h1>
+            <p
+              class="text-sm text-gray-300 line-clamp-2"
+              x-text="config.tagline || 'Premium entertainment updates, movie links & trending drops'"
+            ></p>
+          </div>
+        </div>
+
+        <!-- Hero content -->
+        <div class="max-w-md mb-5">
+          <h2
+            class="text-3xl sm:text-4xl font-black leading-tight tracking-tight mb-2"
+            x-text="config.heroTitle || 'Your Movie Hub in One Tap'"
+          ></h2>
+          <p
+            class="text-sm sm:text-base text-gray-300 leading-relaxed"
+            x-text="config.heroSubtitle || 'Explore featured posters, trending uploads, and direct watch links from one premium bio page.'"
+          ></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap gap-2 mb-5">
+          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i class="ph-fill ph-film-strip text-primary"></i>
+            <span x-text="movies.length + ' Movies'"></span>
+          </div>
+
+          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i class="ph-fill ph-television text-gold"></i>
+            Featured Posters
+          </div>
+
+          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i class="ph-fill ph-lightning text-yellow-300"></i>
+            Fast Watch Access
+          </div>
+        </div>
+
+        <!-- CTA buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a
+            :href="config.telegramLink || '#'"
+            target="_blank"
+            class="flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-base hover:scale-[1.02] transition shadow-glowRed"
+          >
+            <i class="ph-fill ph-telegram-logo text-2xl text-accent"></i>
+            Join Telegram
+          </a>
+
+          <button
+            @click="scrollToMovies()"
+            class="glass-strong flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-base hover:bg-white/10 transition"
+          >
+            <i class="ph-fill ph-play-circle text-2xl text-primary"></i>
+            Browse Movies
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH + FILTERS -->
+    <section id="moviesSection" class="mb-5">
+      <!-- Search -->
+      <div class="glass-strong rounded-[1.6rem] p-3 border border-white/10 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+            <i class="ph ph-magnifying-glass text-xl text-white/80"></i>
+          </div>
+
+          <div class="flex-1">
+            <input
+              x-model="searchQuery"
+              type="text"
+              placeholder="Search movies, genre, year, language..."
+              class="w-full bg-transparent outline-none text-white placeholder:text-gray-400 text-sm sm:text-base"
+            />
+          </div>
+
+          <button
+            x-show="searchQuery"
+            @click="searchQuery = ''"
+            class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition"
+          >
+            <i class="ph ph-x text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter chips -->
+      <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <button
+          @click="selectedGenre = 'All'"
+          :class="selectedGenre === 'All' ? 'chip-active' : 'glass hover:bg-white/10'"
+          class="shrink-0 px-4 py-2 rounded-xl text-sm font-bold border transition"
+        >
+          All
+        </button>
+
+        <template x-for="genre in genres" :key="genre">
+          <button
+            @click="selectedGenre = genre"
+            :class="selectedGenre === genre ? 'chip-active' : 'glass hover:bg-white/10'"
+            class="shrink-0 px-4 py-2 rounded-xl text-sm font-bold border transition"
+            x-text="genre"
+          ></button>
+        </template>
+      </div>
+    </section>
+
+    <!-- SECTION HEADER -->
+    <section class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-xl font-black tracking-tight">Featured Movies</h3>
+        <p class="text-sm text-gray-400">
+          <span x-text="filteredMovies.length"></span> result(s)
+          <template x-if="searchQuery">
+            <span> for "<span x-text="searchQuery"></span>"</span>
+          </template>
+          <template x-if="selectedGenre !== 'All'">
+            <span> in <span x-text="selectedGenre"></span></span>
+          </template>
+        </p>
+      </div>
+
+      <div class="glass px-3 py-2 rounded-xl text-xs font-bold text-white/80">
+        Latest Uploads
+      </div>
+    </section>
+
+    <!-- LOADING -->
+    <div x-show="isLoading" class="py-12">
+      <div class="grid grid-cols-2 gap-4">
+        <template x-for="i in 6" :key="i">
+          <div class="animate-pulse">
+            <div class="aspect-[2/3] rounded-[1.7rem] bg-white/5 border border-white/5"></div>
+            <div class="h-4 bg-white/5 rounded-lg mt-3 w-3/4"></div>
+            <div class="h-3 bg-white/5 rounded-lg mt-2 w-1/2"></div>
+          </div>
+        </template>
+      </div>
     </div>
 
-    <!-- MODERN MOVIE GRID -->
-    <div x-show="!isLoading" class="grid grid-cols-2 gap-5 mb-12">
-      <template x-for="movie in movies" :key="movie.id">
-        <div @click="selectedMovie = movie" class="group relative rounded-3xl overflow-hidden cursor-pointer aspect-[2/3] bg-dark border border-white/5 shadow-2xl hover:border-white/20 transition-all duration-500">
-          
-          <img :src="movie.poster" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-          
-          <!-- Cinematic Overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity"></div>
-          
-          <!-- Animated Play Button Overlay -->
-          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
-            <div class="bg-primary/90 backdrop-blur-md p-4 rounded-full shadow-[0_0_40px_rgba(229,9,20,0.6)]">
-              <i class="ph-fill ph-play text-white text-2xl ml-1"></i>
+    <!-- MOVIES GRID -->
+    <section x-show="!isLoading">
+      <div class="grid grid-cols-2 gap-4 sm:gap-5">
+        <template x-for="movie in filteredMovies" :key="movie.id">
+          <article
+            @click="openMovie(movie)"
+            class="group relative movie-card rounded-[1.8rem] overflow-hidden cursor-pointer aspect-[2/3] bg-card border border-white/10 shadow-soft hover:border-white/20 transition-all duration-500 animate-slide-up"
+          >
+            <!-- Poster -->
+            <div class="poster-shine absolute inset-0">
+              <img
+                :src="movie.poster || fallbackPoster"
+                :alt="movie.title"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
             </div>
+
+            <!-- Top badges -->
+            <div class="absolute top-3 left-3 z-10 flex flex-wrap gap-2 max-w-[80%]">
+              <template x-if="movie.badge">
+                <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/95 text-white shadow-lg" x-text="movie.badge"></span>
+              </template>
+
+              <template x-if="movie.quality">
+                <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-black/45 backdrop-blur-md border border-white/10" x-text="movie.quality"></span>
+              </template>
+            </div>
+
+            <!-- Hover play -->
+            <div class="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+              <div class="w-16 h-16 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center shadow-glowRed">
+                <i class="ph-fill ph-play text-white text-2xl ml-1"></i>
+              </div>
+            </div>
+
+            <!-- Bottom info -->
+            <div class="absolute bottom-0 left-0 right-0 z-10 p-4">
+              <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-2 flex-wrap">
+                <template x-if="movie.genre">
+                  <span class="text-primary" x-text="movie.genre"></span>
+                </template>
+                <template x-if="movie.year">
+                  <span>• <span x-text="movie.year"></span></span>
+                </template>
+              </div>
+
+              <h4 class="text-white font-black text-base leading-tight drop-shadow-lg line-clamp-2" x-text="movie.title"></h4>
+
+              <div class="flex items-center justify-between mt-2">
+                <template x-if="movie.language">
+                  <p class="text-xs text-gray-300 truncate" x-text="movie.language"></p>
+                </template>
+
+                <button
+                  @click.stop="smartRedirect(movie)"
+                  class="opacity-0 group-hover:opacity-100 transition text-xs font-black bg-white text-black px-3 py-1.5 rounded-xl"
+                >
+                  Watch
+                </button>
+              </div>
+            </div>
+          </article>
+        </template>
+      </div>
+
+      <!-- Empty state -->
+      <div
+        x-show="!filteredMovies.length && !isLoading"
+        class="mt-8 glass-strong rounded-[2rem] p-8 text-center border border-white/10"
+      >
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+          <i class="ph ph-film-strip text-3xl text-primary"></i>
+        </div>
+        <h4 class="text-xl font-black mb-2">No movie found</h4>
+        <p class="text-gray-400 text-sm mb-5">Try another title, genre, year, or keyword.</p>
+        <button
+          @click="clearFilters()"
+          class="bg-white text-black px-5 py-3 rounded-2xl font-bold hover:scale-[1.02] transition"
+        >
+          Clear Search
+        </button>
+      </div>
+    </section>
+
+    <!-- TELEGRAM CTA -->
+    <section class="mt-8">
+      <div class="relative overflow-hidden rounded-[2rem] glass-strong border border-white/10 p-6 shadow-soft">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10"></div>
+
+        <div class="relative">
+          <p class="text-primary text-xs font-black uppercase tracking-[0.25em] mb-2">Movie Hub</p>
+          <h3 class="text-2xl font-black tracking-tight mb-2">Want more movie drops?</h3>
+          <p class="text-sm text-gray-300 mb-5">
+            Join the Telegram channel for direct updates, featured uploads, and fast access to new watch links.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <a
+              :href="config.telegramLink || '#'"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-3 bg-primary text-white px-5 py-3 rounded-2xl font-black shadow-glowRed hover:scale-[1.02] transition"
+            >
+              <i class="ph-fill ph-telegram-logo text-xl"></i>
+              Join Telegram
+            </a>
+
+            <a
+              x-show="config.instagramLink"
+              :href="config.instagramLink"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-3 glass px-5 py-3 rounded-2xl font-black hover:bg-white/10 transition"
+            >
+              <i class="ph ph-instagram-logo text-xl"></i>
+              Instagram
+            </a>
           </div>
-          
-          <!-- Badge -->
-          <template x-if="movie.badge">
-            <span class="absolute top-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black px-3 py-1.5 rounded-lg shadow-lg uppercase tracking-widest" x-text="movie.badge"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="pt-10 text-center text-sm text-gray-500">
+      <p class="font-semibold" x-text="config.footerText || 'One link. Unlimited entertainment.'"></p>
+    </footer>
+  </main>
+
+  <!-- MOVIE MODAL -->
+  <div
+    x-cloak
+    x-show="selectedMovie"
+    class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center p-3 sm:p-5"
+  >
+    <div
+      @click.away="selectedMovie = null"
+      class="w-full max-w-md bg-[#0c0c12] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl"
+      x-show="selectedMovie"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 translate-y-10 scale-95"
+      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+      x-transition:leave-end="opacity-0 translate-y-6 scale-95"
+    >
+      <!-- Poster -->
+      <div class="relative h-72">
+        <img
+          :src="selectedMovie?.poster || fallbackPoster"
+          :alt="selectedMovie?.title || 'Movie'"
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0c0c12] via-[#0c0c12]/40 to-transparent"></div>
+
+        <button
+          @click="selectedMovie = null"
+          class="absolute top-4 right-4 w-11 h-11 rounded-full glass flex items-center justify-center hover:bg-white hover:text-black transition"
+        >
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="p-5 -mt-12 relative">
+        <!-- Meta -->
+        <div class="flex flex-wrap gap-2 mb-3">
+          <template x-if="selectedMovie?.genre">
+            <span class="glass px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.genre"></span>
           </template>
 
-          <!-- Text Details -->
-          <div class="absolute bottom-0 left-0 w-full p-5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-            <p class="text-primary text-[10px] font-black uppercase tracking-widest mb-1 drop-shadow-md" x-text="movie.genre"></p>
-            <h3 class="text-white font-bold text-lg leading-tight truncate drop-shadow-lg" x-text="movie.title"></h3>
-          </div>
+          <template x-if="selectedMovie?.year">
+            <span class="glass px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.year"></span>
+          </template>
+
+          <template x-if="selectedMovie?.language">
+            <span class="glass px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.language"></span>
+          </template>
+
+          <template x-if="selectedMovie?.quality">
+            <span class="glass px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.quality"></span>
+          </template>
+
+          <template x-if="selectedMovie?.badge">
+            <span class="bg-primary/95 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest" x-text="selectedMovie.badge"></span>
+          </template>
         </div>
-      </template>
-    </div>
-  </div>
 
-  <!-- ULTRA PREMIUM MOVIE MODAL -->
-  <div x-cloak x-show="selectedMovie" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-2xl p-4 sm:p-0 transition-all">
-    <div @click.away="selectedMovie = null" class="w-full max-w-md bg-darker/95 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl"
-         x-show="selectedMovie" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-16 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100">
-      
-      <!-- Close Button -->
-      <button @click="selectedMovie = null" class="absolute top-5 right-5 z-20 glass-btn p-2.5 rounded-full text-white hover:bg-white hover:text-black transition-colors">
-        <i class="ph ph-x font-bold text-lg"></i>
-      </button>
+        <!-- Title -->
+        <h3 class="text-3xl font-black tracking-tight leading-tight mb-3" x-text="selectedMovie?.title"></h3>
 
-      <!-- Modal Image -->
-      <div class="relative h-80">
-        <img :src="selectedMovie?.poster" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-darker via-darker/60 to-transparent"></div>
-      </div>
+        <!-- Description -->
+        <template x-if="selectedMovie?.description">
+          <p class="text-sm text-gray-300 leading-relaxed mb-5 line-clamp-3" x-text="selectedMovie.description"></p>
+        </template>
 
-      <!-- Modal Content -->
-      <div class="p-8 relative -mt-24">
-        <div class="flex space-x-2 mb-4">
-          <span class="glass-card px-4 py-1.5 rounded-xl text-[10px] font-black text-white uppercase tracking-widest border border-white/20 shadow-lg" x-text="selectedMovie?.genre"></span>
-        </div>
-        
-        <h2 class="text-4xl font-black mb-8 tracking-tight leading-none" x-text="selectedMovie?.title"></h2>
-        
-        <div class="space-y-4">
-          <!-- ADVANCED SMART REDIRECT BUTTON -->
-          <button @click="smartRedirect(selectedMovie)" class="flex items-center justify-center w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:bg-red-700 transition shadow-[0_0_30px_rgba(229,9,20,0.4)] hover:scale-[1.02]">
-            <i class="ph-fill ph-play-circle text-3xl mr-2"></i> Watch Now
+        <!-- Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            @click="smartRedirect(selectedMovie)"
+            class="flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-2xl font-black hover:bg-red-700 transition shadow-glowRed"
+          >
+            <i class="ph-fill ph-play-circle text-2xl"></i>
+            Watch Now
           </button>
+
+          <a
+            :href="selectedMovie?.secondaryLink || config.telegramLink || '#'"
+            target="_blank"
+            class="flex items-center justify-center gap-2 glass-strong py-4 rounded-2xl font-black hover:bg-white/10 transition"
+          >
+            <i class="ph-fill ph-telegram-logo text-2xl text-accent"></i>
+            Join Channel
+          </a>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    document.addEventListener('alpine:init', () => {
-      Alpine.data('cineHub', () => ({
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("cineHub", () => ({
         isLoading: true,
-        config: { telegramLink: '' },
+
+        config: {
+          brandName: "CineHub",
+          tagline: "Premium Entertainment Hub",
+          heroTitle: "Your Movie Hub in One Tap",
+          heroSubtitle: "Explore featured posters, trending uploads, and direct watch links from one premium bio page.",
+          telegramLink: "",
+          instagramLink: "",
+          heroImage: "",
+          logo: "",
+          footerText: "One link. Unlimited entertainment."
+        },
+
         movies: [],
         selectedMovie: null,
 
+        searchQuery: "",
+        selectedGenre: "All",
+
+        fallbackHero: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1400&auto=format&fit=crop",
+        fallbackLogo: "https://ui-avatars.com/api/?name=CineHub&background=e50914&color=fff&size=128",
+        fallbackPoster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=800&auto=format&fit=crop",
+
         async fetchData() {
           try {
-            const response = await fetch('/api/data');
-            const data = await response.json();
-            this.config = data.config || { telegramLink: '' };
-            this.movies = data.movies || [];
-          } catch (error) {
-            console.error("API Error:", error);
+            const res = await fetch("/api/data");
+            const data = await res.json();
+
+            this.config = {
+              ...this.config,
+              ...(data.config || {})
+            };
+
+            this.movies = Array.isArray(data.movies) ? data.movies : [];
+          } catch (err) {
+            console.error("API Error:", err);
           } finally {
             this.isLoading = false;
           }
         },
 
-        // ADVANCED SMART REDIRECT LOGIC
-        smartRedirect(movie) {
-          const telegramUrl = this.config.telegramLink;
-          const fallbackUrl = movie.watchLink || telegramUrl;
+        get genres() {
+          const allGenres = this.movies
+            .map(m => (m.genre || "").trim())
+            .filter(Boolean);
 
-          // If no global Telegram link is set, just go to the fallback
+          return [...new Set(allGenres)];
+        },
+
+        get filteredMovies() {
+          let list = [...this.movies];
+
+          // genre filter
+          if (this.selectedGenre !== "All") {
+            list = list.filter(movie => (movie.genre || "").toLowerCase() === this.selectedGenre.toLowerCase());
+          }
+
+          // text search
+          const q = this.searchQuery.trim().toLowerCase();
+          if (q) {
+            list = list.filter(movie => {
+              return [
+                movie.title,
+                movie.genre,
+                movie.badge,
+                movie.language,
+                movie.year,
+                movie.quality,
+                movie.description
+              ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            });
+          }
+
+          return list;
+        },
+
+        clearFilters() {
+          this.searchQuery = "";
+          this.selectedGenre = "All";
+        },
+
+        scrollToMovies() {
+          const el = document.getElementById("moviesSection");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        },
+
+        openMovie(movie) {
+          this.selectedMovie = movie;
+        },
+
+        smartRedirect(movie) {
+          const telegramUrl = this.config.telegramLink || "";
+          const fallbackUrl = movie?.watchLink || telegramUrl;
+
+          if (!fallbackUrl) return;
+
+          // If movie has its own watchLink and it's not Telegram-based, go directly
+          if (movie?.watchLink && !telegramUrl) {
+            window.location.href = movie.watchLink;
+            return;
+          }
+
+          // If no Telegram link configured, fallback to movie/watch link
           if (!telegramUrl) {
             window.location.href = fallbackUrl;
             return;
           }
 
-          // 1. Convert standard t.me link to a Telegram deep link (tg://)
+          // Convert t.me link to tg:// deep link
           let deepLink = telegramUrl;
-          if (telegramUrl.includes('t.me/')) {
-            const path = telegramUrl.split('t.me/')[1];
-            if (path.startsWith('+') || path.startsWith('joinchat/')) {
-              const inviteCode = path.replace('+', '').replace('joinchat/', '');
+
+          if (telegramUrl.includes("t.me/")) {
+            const path = telegramUrl.split("t.me/")[1];
+
+            if (path.startsWith("+") || path.startsWith("joinchat/")) {
+              const inviteCode = path.replace("+", "").replace("joinchat/", "");
               deepLink = `tg://join?invite=${inviteCode}`;
             } else {
-              deepLink = `tg://resolve?domain=${path.split('?')[0].split('/')[0]}`;
+              const username = path.split("?")[0].split("/")[0];
+              deepLink = `tg://resolve?domain=${username}`;
             }
           }
 
-          // 2. State tracking
           let appOpened = false;
 
-          // 3. Listeners to detect if Telegram takes over the screen
-          const markAsOpened = () => { appOpened = true; };
-          
-          window.addEventListener('blur', markAsOpened);
-          document.addEventListener('visibilitychange', () => {
-            if (document.hidden) markAsOpened();
-          });
+          const markOpened = () => {
+            appOpened = true;
+          };
 
-          // 4. Attempt to open Telegram directly
+          const visibilityHandler = () => {
+            if (document.hidden) appOpened = true;
+          };
+
+          window.addEventListener("blur", markOpened);
+          document.addEventListener("visibilitychange", visibilityHandler);
+
+          // Try Telegram app
           window.location.href = deepLink;
 
-          // 5. Check exactly 2 seconds later if the browser is still active
+          // Fallback after delay if app didn't open
           setTimeout(() => {
-            // Clean up the event listener
-            window.removeEventListener('blur', markAsOpened);
-            
-            // If the browser never lost focus and isn't hidden, Telegram isn't installed.
-            // Fire the fallback URL (e.g., your custom Watch Link).
+            window.removeEventListener("blur", markOpened);
+            document.removeEventListener("visibilitychange", visibilityHandler);
+
             if (!appOpened && !document.hidden) {
               window.location.href = fallbackUrl;
             }
-          }, 2000);
+          }, 1800);
         }
-      }))
-    })
+      }));
+    });
   </script>
 </body>
 </html>
