@@ -1,0 +1,50 @@
+{
+  "config": {
+    "brandName": "CineHub",
+    "heroTitle": "Unlimited Entertainment Starts Here",
+    "heroSubtitle": "Your ultimate destination for the latest movies, web series, and exclusive daily drops.",
+    "mainTelegramLink": "https://t.me/your_channel",
+    "logoUrl": "https://ui-avatars.com/api/?name=Cine+Hub&background=e50914&color=fff&size=128"
+  },
+  "movies": [
+    {
+      "id": 1,
+      "title": "Neon Horizon",
+      "subtitle": "Trending Now",
+      "poster": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=600",
+      "description": "A breathtaking sci-fi journey through a dystopian future. Experience visual mastery.",
+      "genre": "Sci-Fi",
+      "year": "2026",
+      "language": "English",
+      "quality": "4K HDR",
+      "watchLink": "https://t.me/your_channel/101",
+      "badge": "New"
+    },
+    {
+      "id": 2,
+      "title": "The Shadow Code",
+      "subtitle": "Exclusive Release",
+      "poster": "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&q=80&w=600",
+      "description": "An intense thriller where every second counts. Will they survive the night?",
+      "genre": "Thriller",
+      "year": "2025",
+      "language": "Hindi Dubbed",
+      "quality": "1080p",
+      "watchLink": "https://t.me/your_channel/102",
+      "badge": "Trending"
+    },
+    {
+      "id": 3,
+      "title": "Midnight Romance",
+      "subtitle": "Feel the Love",
+      "poster": "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=600",
+      "description": "A beautiful story of two strangers meeting in the city of lights.",
+      "genre": "Romance",
+      "year": "2026",
+      "language": "Hindi",
+      "quality": "HD",
+      "watchLink": "",
+      "badge": "Popular"
+    }
+  ]
+}
