@@ -115,7 +115,7 @@
         <h2 class="text-4xl font-black mb-8 tracking-tight leading-none" x-text="selectedMovie?.title"></h2>
         
         <div class="space-y-4">
-          <!-- SMART REDIRECT BUTTON -->
+          <!-- ADVANCED SMART REDIRECT BUTTON -->
           <button @click="smartRedirect(selectedMovie)" class="flex items-center justify-center w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:bg-red-700 transition shadow-[0_0_30px_rgba(229,9,20,0.4)] hover:scale-[1.02]">
             <i class="ph-fill ph-play-circle text-3xl mr-2"></i> Watch Now
           </button>
@@ -145,46 +145,54 @@
           }
         },
 
-        // SMART REDIRECT LOGIC
+        // ADVANCED SMART REDIRECT LOGIC
         smartRedirect(movie) {
           const telegramUrl = this.config.telegramLink;
           const fallbackUrl = movie.watchLink || telegramUrl;
 
+          // If no global Telegram link is set, just go to the fallback
           if (!telegramUrl) {
-            window.open(fallbackUrl, '_blank');
+            window.location.href = fallbackUrl;
             return;
           }
 
-          // 1. Convert standard t.me link to an app deep link (tg://)
+          // 1. Convert standard t.me link to a Telegram deep link (tg://)
           let deepLink = telegramUrl;
           if (telegramUrl.includes('t.me/')) {
             const path = telegramUrl.split('t.me/')[1];
-            // Handle private invite links vs public channel links
             if (path.startsWith('+') || path.startsWith('joinchat/')) {
               const inviteCode = path.replace('+', '').replace('joinchat/', '');
               deepLink = `tg://join?invite=${inviteCode}`;
             } else {
-              deepLink = `tg://resolve?domain=${path}`;
+              deepLink = `tg://resolve?domain=${path.split('?')[0].split('/')[0]}`;
             }
           }
 
-          // 2. The Fallback Mechanism
-          const start = Date.now();
-          
-          // Create an invisible iframe to try opening the deep link silently
-          const iframe = document.createElement("iframe");
-          iframe.style.display = "none";
-          iframe.src = deepLink;
-          document.body.appendChild(iframe);
+          // 2. State tracking
+          let appOpened = false;
 
-          // If the app doesn't take over the screen in 1.5 seconds, redirect to the Watch Link
+          // 3. Listeners to detect if Telegram takes over the screen
+          const markAsOpened = () => { appOpened = true; };
+          
+          window.addEventListener('blur', markAsOpened);
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) markAsOpened();
+          });
+
+          // 4. Attempt to open Telegram directly
+          window.location.href = deepLink;
+
+          // 5. Check exactly 2 seconds later if the browser is still active
           setTimeout(() => {
-            document.body.removeChild(iframe);
-            // If the browser hasn't paused/backgrounded, the user doesn't have Telegram installed
-            if (Date.now() - start < 2000) {
+            // Clean up the event listener
+            window.removeEventListener('blur', markAsOpened);
+            
+            // If the browser never lost focus and isn't hidden, Telegram isn't installed.
+            // Fire the fallback URL (e.g., your custom Watch Link).
+            if (!appOpened && !document.hidden) {
               window.location.href = fallbackUrl;
             }
-          }, 1500);
+          }, 2000);
         }
       }))
     })
