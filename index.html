@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineHub</title>
+  <title>CineHub - Enhanced</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -77,12 +77,6 @@
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255,255,255,.10);
-    }
-
-    .hero-overlay {
-      background:
-        linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,.70)),
-        linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.10));
     }
 
     .movie-card::after {
@@ -161,114 +155,29 @@
 
   <main class="relative z-10 max-w-xl mx-auto px-4 sm:px-5 pt-5 pb-24" x-cloak>
 
-    <!-- HERO -->
-    <section class="relative rounded-[2rem] overflow-hidden mb-5 border border-white/10 shadow-soft">
-      <!-- Hero background -->
-      <div class="absolute inset-0">
-        <img
-          :src="config.heroImage || fallbackHero"
-          alt="Hero"
-          class="w-full h-full object-cover"
-        />
-        <div class="absolute inset-0 hero-overlay"></div>
+    <!-- NEW HERO SECTION -->
+    <section class="mb-8">
+      <!-- Media Grid -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft">
+          <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop" alt="Scene 1" class="w-full h-full object-cover hover:scale-105 transition duration-500" />
+        </div>
+        <div class="rounded-2xl overflow-hidden aspect-[4/3] bg-white/5 border border-white/10 shadow-soft">
+          <img src="https://images.unsplash.com/photo-1574267432553-4b462808152a?q=80&w=800&auto=format&fit=crop" alt="Scene 2" class="w-full h-full object-cover hover:scale-105 transition duration-500" />
+        </div>
       </div>
 
-      <!-- Top right actions -->
-      <div class="absolute top-4 right-4 z-20 flex gap-2">
-        <a
-          x-show="config.instagramLink"
-          :href="config.instagramLink"
-          target="_blank"
-          class="glass px-3 py-2 rounded-xl text-xs font-bold text-white/90 flex items-center gap-2 hover:bg-white/10 transition"
+      <!-- Main "Watch now" Call to Action (Redirects to Telegram) -->
+      <div class="flex justify-center w-full">
+        <button
+          @click="smartRedirect()"
+          class="flex items-center justify-between bg-black text-white rounded-[1.5rem] p-3 pl-8 hover:scale-105 transition-transform duration-300 shadow-2xl border border-white/10 w-full sm:w-[85%]"
         >
-          <i class="ph ph-instagram-logo text-lg"></i>
-          IG
-        </a>
-
-        <a
-          x-show="config.telegramLink"
-          :href="config.telegramLink"
-          target="_blank"
-          class="glass px-3 py-2 rounded-xl text-xs font-bold text-white/90 flex items-center gap-2 hover:bg-white/10 transition"
-        >
-          <i class="ph-fill ph-telegram-logo text-lg text-accent"></i>
-          TG
-        </a>
-      </div>
-
-      <div class="relative z-10 p-5 sm:p-6">
-        <!-- Brand -->
-        <div class="flex items-center gap-3 mb-6">
-          <div class="relative shrink-0">
-            <div class="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-full blur-md opacity-70"></div>
-            <img
-              :src="config.logo || fallbackLogo"
-              alt="Brand Logo"
-              class="relative w-16 h-16 rounded-full object-cover border border-white/20"
-            />
+          <span class="text-3xl font-black tracking-wide">Watch now</span>
+          <div class="bg-[#ff9500] rounded-xl w-14 h-14 flex items-center justify-center shadow-lg">
+            <i class="ph-fill ph-play text-white text-3xl ml-1"></i>
           </div>
-
-          <div class="min-w-0">
-            <h1
-              class="text-2xl sm:text-3xl font-black tracking-tight truncate"
-              x-text="config.brandName || 'CineHub'"
-            ></h1>
-            <p
-              class="text-sm text-gray-300 line-clamp-2"
-              x-text="config.tagline || 'Premium entertainment updates, movie links & trending drops'"
-            ></p>
-          </div>
-        </div>
-
-        <!-- Hero content -->
-        <div class="max-w-md mb-5">
-          <h2
-            class="text-3xl sm:text-4xl font-black leading-tight tracking-tight mb-2"
-            x-text="config.heroTitle || 'Your Movie Hub in One Tap'"
-          ></h2>
-          <p
-            class="text-sm sm:text-base text-gray-300 leading-relaxed"
-            x-text="config.heroSubtitle || 'Explore featured posters, trending uploads, and direct watch links from one premium bio page.'"
-          ></p>
-        </div>
-
-        <!-- Stats -->
-        <div class="flex flex-wrap gap-2 mb-5">
-          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-            <i class="ph-fill ph-film-strip text-primary"></i>
-            <span x-text="movies.length + ' Movies'"></span>
-          </div>
-
-          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-            <i class="ph-fill ph-television text-gold"></i>
-            Featured Posters
-          </div>
-
-          <div class="glass px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-            <i class="ph-fill ph-lightning text-yellow-300"></i>
-            Fast Watch Access
-          </div>
-        </div>
-
-        <!-- CTA buttons -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <a
-            :href="config.telegramLink || '#'"
-            target="_blank"
-            class="flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-base hover:scale-[1.02] transition shadow-glowRed"
-          >
-            <i class="ph-fill ph-telegram-logo text-2xl text-accent"></i>
-            Join Telegram
-          </a>
-
-          <button
-            @click="scrollToMovies()"
-            class="glass-strong flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-base hover:bg-white/10 transition"
-          >
-            <i class="ph-fill ph-play-circle text-2xl text-primary"></i>
-            Browse Movies
-          </button>
-        </div>
+        </button>
       </div>
     </section>
 
@@ -438,42 +347,6 @@
       </div>
     </section>
 
-    <!-- TELEGRAM CTA -->
-    <section class="mt-8">
-      <div class="relative overflow-hidden rounded-[2rem] glass-strong border border-white/10 p-6 shadow-soft">
-        <div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10"></div>
-
-        <div class="relative">
-          <p class="text-primary text-xs font-black uppercase tracking-[0.25em] mb-2">Movie Hub</p>
-          <h3 class="text-2xl font-black tracking-tight mb-2">Want more movie drops?</h3>
-          <p class="text-sm text-gray-300 mb-5">
-            Join the Telegram channel for direct updates, featured uploads, and fast access to new watch links.
-          </p>
-
-          <div class="flex flex-col sm:flex-row gap-3">
-            <a
-              :href="config.telegramLink || '#'"
-              target="_blank"
-              class="inline-flex items-center justify-center gap-3 bg-primary text-white px-5 py-3 rounded-2xl font-black shadow-glowRed hover:scale-[1.02] transition"
-            >
-              <i class="ph-fill ph-telegram-logo text-xl"></i>
-              Join Telegram
-            </a>
-
-            <a
-              x-show="config.instagramLink"
-              :href="config.instagramLink"
-              target="_blank"
-              class="inline-flex items-center justify-center gap-3 glass px-5 py-3 rounded-2xl font-black hover:bg-white/10 transition"
-            >
-              <i class="ph ph-instagram-logo text-xl"></i>
-              Instagram
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- FOOTER -->
     <footer class="pt-10 text-center text-sm text-gray-500">
       <p class="font-semibold" x-text="config.footerText || 'One link. Unlimited entertainment.'"></p>
@@ -576,14 +449,8 @@
         isLoading: true,
 
         config: {
-          brandName: "CineHub",
-          tagline: "Premium Entertainment Hub",
-          heroTitle: "Your Movie Hub in One Tap",
-          heroSubtitle: "Explore featured posters, trending uploads, and direct watch links from one premium bio page.",
-          telegramLink: "",
+          telegramLink: "https://t.me/yourtelegramchannel", // Replace with your actual TG link
           instagramLink: "",
-          heroImage: "",
-          logo: "",
           footerText: "One link. Unlimited entertainment."
         },
 
@@ -593,8 +460,6 @@
         searchQuery: "",
         selectedGenre: "All",
 
-        fallbackHero: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1400&auto=format&fit=crop",
-        fallbackLogo: "https://ui-avatars.com/api/?name=CineHub&background=e50914&color=fff&size=128",
         fallbackPoster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=800&auto=format&fit=crop",
 
         async fetchData() {
@@ -626,12 +491,10 @@
         get filteredMovies() {
           let list = [...this.movies];
 
-          // genre filter
           if (this.selectedGenre !== "All") {
             list = list.filter(movie => (movie.genre || "").toLowerCase() === this.selectedGenre.toLowerCase());
           }
 
-          // text search
           const q = this.searchQuery.trim().toLowerCase();
           if (q) {
             list = list.filter(movie => {
@@ -670,25 +533,22 @@
           this.selectedMovie = movie;
         },
 
-        smartRedirect(movie) {
-          const telegramUrl = this.config.telegramLink || "";
+        smartRedirect(movie = null) {
+          const telegramUrl = this.config.telegramLink || "https://t.me/telegram";
           const fallbackUrl = movie?.watchLink || telegramUrl;
 
           if (!fallbackUrl) return;
 
-          // If movie has its own watchLink and it's not Telegram-based, go directly
           if (movie?.watchLink && !telegramUrl) {
             window.location.href = movie.watchLink;
             return;
           }
 
-          // If no Telegram link configured, fallback to movie/watch link
           if (!telegramUrl) {
             window.location.href = fallbackUrl;
             return;
           }
 
-          // Convert t.me link to tg:// deep link
           let deepLink = telegramUrl;
 
           if (telegramUrl.includes("t.me/")) {
@@ -716,10 +576,8 @@
           window.addEventListener("blur", markOpened);
           document.addEventListener("visibilitychange", visibilityHandler);
 
-          // Try Telegram app
           window.location.href = deepLink;
 
-          // Fallback after delay if app didn't open
           setTimeout(() => {
             window.removeEventListener("blur", markOpened);
             document.removeEventListener("visibilitychange", visibilityHandler);
