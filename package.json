@@ -1,10 +1,10 @@
 {
   "name": "cinehub-premium",
   "version": "1.0.0",
-  "description": "Cinematic Movie Hub with API Admin Panel",
+  "description": "Cinematic Movie Hub with MongoDB",
   "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "dependencies": {
+    "mongodb": "^6.5.0"
   },
   "engines": {
     "node": ">=18.x"
