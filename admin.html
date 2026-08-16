@@ -34,7 +34,7 @@
       <div class="glass-panel p-6 rounded-2xl">
         <h2 class="text-lg font-bold mb-5 flex items-center justify-between">
           <span class="flex items-center" x-text="isEditing ? 'Edit Movie' : 'Add Movie'"></span>
-          <button x-show="isEditing" @click="cancelEdit()" class="text-xs text-gray-400 hover:text-white underline">Cancel</button>
+          <button type="button" x-show="isEditing" @click="cancelEdit()" class="text-xs text-gray-400 hover:text-white underline">Cancel</button>
         </h2>
         <form @submit.prevent="saveMovie" class="space-y-4">
           <input type="text" x-model="activeMovie.title" placeholder="Movie Title" required class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none">
@@ -75,10 +75,10 @@
               </div>
             </div>
             <div class="flex items-center space-x-2 opacity-50 group-hover:opacity-100 transition">
-              <button @click="editMovie(movie)" class="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl transition">
+              <button @click="editMovie(movie)" type="button" class="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl transition">
                 <i class="ph-fill ph-pencil text-lg"></i>
               </button>
-              <button @click="deleteMovie(movie.id)" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition">
+              <button @click="deleteMovie(movie.id)" type="button" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition">
                 <i class="ph-fill ph-trash text-lg"></i>
               </button>
             </div>
@@ -99,31 +99,39 @@
         activeMovie: { id: null, title: '', poster: '', watchLink: '', genre: '', badge: '' },
 
         async apiCall(action, payload) {
-          const res = await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secretKey: this.secretKey, action, payload })
-          });
-          const data = await res.json();
-          if(data.error) alert(data.error);
-          return data;
+          try {
+            const res = await fetch('/api/data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ secretKey: this.secretKey, action, payload })
+            });
+            const data = await res.json();
+            if(data.error) alert(data.error);
+            return data;
+          } catch (err) {
+            alert("Network error or server connection failed.");
+            return { success: false };
+          }
         },
 
         async fetchData() {
-          const res = await fetch('/api/data');
-          const data = await res.json();
-          this.config = data.config || { telegramLink: '' };
-          this.movies = data.movies || [];
+          try {
+            const res = await fetch('/api/data');
+            const data = await res.json();
+            this.config = data.config || { telegramLink: '' };
+            this.movies = data.movies || [];
+          } catch (err) {
+            console.error("Failed to fetch initial data", err);
+          }
         },
 
         async updateConfig() {
           const res = await this.apiCall('updateConfig', { telegramLink: this.config.telegramLink });
-          if(res.success) alert("Global link updated!");
+          if(res && res.success) alert("Global link updated!");
         },
 
         editMovie(movie) {
           this.isEditing = true;
-          // Clone the movie object into activeMovie so bindings don't mutate the list prematurely
           this.activeMovie = { ...movie };
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
@@ -135,10 +143,10 @@
 
         async saveMovie() {
           this.isSubmitting = true;
-          const action = this.isEditing ? 'updateMovie' : 'addMovie';
+          const action = this.isEditing ? 'editMovie' : 'addMovie';
           const res = await this.apiCall(action, this.activeMovie);
           
-          if (res.success) {
+          if (res && res.success) {
             this.movies = res.data.movies;
             this.cancelEdit();
             alert(this.isEditing ? "Movie updated successfully!" : "Movie published successfully!");
@@ -149,7 +157,7 @@
         async deleteMovie(id) {
           if(!confirm("Delete this movie?")) return;
           const res = await this.apiCall('deleteMovie', { id });
-          if(res.success) {
+          if(res && res.success) {
             this.movies = res.data.movies;
             if(this.activeMovie.id === id) this.cancelEdit();
           }
@@ -158,5 +166,4 @@
     })
   </script>
 </body>
-            </html>
-                                                                                                                         
+</html>
